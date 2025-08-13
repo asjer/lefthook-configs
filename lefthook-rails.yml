@@ -1,0 +1,75 @@
+pre-push:
+  jobs:
+    - name: packages audit
+      tags:
+        - frontend
+        - security
+      run: yarn audit
+
+    - name: gems audit
+      tags:
+        - backend
+        - security
+      run: bin/bundle-audit check --update
+
+    - name: brakeman
+      tags:
+        - security
+      run: bin/brakeman -q -w2 > /dev/null
+
+    - name: playwright
+      tags:
+        - backend
+      run: bin/playwright > /dev/null
+
+    - name: rspec
+      tags:
+        - backend
+      run: bin/rspec
+
+pre-commit:
+  parallel: true
+  jobs:
+    # - run: yarn eslint {staged_files}
+    #   glob: "*.{js,ts,jsx,tsx}"
+
+    - name: erblint
+      tags:
+        - frontend
+      glob: "{*.html.erb}"
+      run: bin/erb_lint --lint-all --cache
+
+    - name: rubocop
+      tags:
+        - backend
+      glob: "{*.rb,Gemfile}"
+      run: bundle exec rubocop --force-exclusion {all_files}
+
+    # - name: db consistency
+    #   run: bin/database_consistency -c .database_consistency.todo.yml
+
+deploy:
+  jobs:
+    - name: trigger hatchbox deploy
+      run: |
+        HATCHBOX_WEBHOOK_TOKEN=$(bin/rails runner "puts Rails.application.credentials.hatchbox[:webhook_token]")
+        
+        git fetch origin
+        git checkout production || git checkout -b production origin/production
+        git reset --hard origin/production
+        git merge main
+        git push -u origin production
+        
+        # Verify production and main are now in sync
+        MAIN_SHA=$(git rev-parse main)
+        PROD_SHA=$(git rev-parse production)
+        if [ "$MAIN_SHA" != "$PROD_SHA" ]; then
+          echo "Error: Production and main branches are not in sync!"
+          echo "Main SHA: $MAIN_SHA"
+          echo "Production SHA: $PROD_SHA"
+          git checkout -
+          exit 1
+        fi
+        
+        git checkout -
+        curl -X POST "https://app.hatchbox.io/webhooks/deployments/${HATCHBOX_WEBHOOK_TOKEN}?sha=$(git rev-parse production)"
