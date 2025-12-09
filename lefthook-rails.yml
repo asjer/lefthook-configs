@@ -73,3 +73,51 @@ deploy:
         
         git checkout -
         curl -X POST "https://app.hatchbox.io/webhooks/deployments/${HATCHBOX_WEBHOOK_TOKEN}?sha=$(git rev-parse production)"
+
+create-pull:
+  jobs:
+    - name: create pull
+      run: |
+        set -euo pipefail
+
+        CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+
+        if [ "$CURRENT_BRANCH" = "main" ]; then
+          if [ -n "${BRANCH_NAME:-}" ]; then
+            NEW_BRANCH="$BRANCH_NAME"
+          else
+            if [ -t 0 ]; then
+              read -p "Enter new branch name: " NEW_BRANCH
+            else
+              # Lefthook may run non-interactively; fall back to /dev/tty or require BRANCH_NAME
+              read -p "Enter new branch name: " NEW_BRANCH </dev/tty
+            fi
+          fi
+
+          if [ -z "${NEW_BRANCH:-}" ]; then
+            echo "Branch name cannot be empty." >&2
+            exit 1
+          fi
+
+          git fetch origin
+          git checkout -B "$NEW_BRANCH" main
+          CURRENT_BRANCH="$NEW_BRANCH"
+        else
+          echo "Using current branch: $CURRENT_BRANCH"
+        fi
+
+        git push -u origin "$CURRENT_BRANCH"
+
+        REMOTE_URL=$(git remote get-url origin)
+        # Extract owner and repo from common GitHub remote formats (SSH/HTTPS)
+        if [[ $REMOTE_URL =~ github.com[:/]+([^/]+)/([^/.]+)(\.git)?$ ]]; then
+          OWNER="${BASH_REMATCH[1]}"
+          REPO="${BASH_REMATCH[2]}"
+          PR_URL="https://github.com/${OWNER}/${REPO}/pull/new/${CURRENT_BRANCH}"
+          echo "Creating pull request at: $PR_URL"
+          # Avoid dumping HTML; just check reachability
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" "$PR_URL" || true
+        else
+          echo "Could not parse GitHub owner/repo from remote URL: $REMOTE_URL" >&2
+          exit 1
+        fi
