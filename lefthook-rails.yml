@@ -20,7 +20,7 @@ pre-push:
     - name: playwright
       tags:
         - backend
-      run: bin/playwright > /dev/null
+      run: NODE_NO_WARNINGS=1 bin/playwright > /dev/null
 
     - name: rspec
       tags:
