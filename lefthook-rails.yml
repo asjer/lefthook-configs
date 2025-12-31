@@ -10,7 +10,7 @@ pre-push:
       tags:
         - backend
         - security
-      run: bin/bundle-audit check --update
+      run: bin/bundler-audit check --update
 
     - name: brakeman
       tags:
