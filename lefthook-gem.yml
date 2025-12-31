@@ -1,0 +1,24 @@
+pre-push:
+  jobs:
+    - name: gems audit
+      tags:
+        - backend
+        - security
+      run: bundle exec bundler-audit check --update
+
+    - name: rspec
+      tags:
+        - backend
+      run: bundle exec rspec
+
+pre-commit:
+  parallel: true
+  jobs:
+    # - run: yarn eslint {staged_files}
+    #   glob: "*.{js,ts,jsx,tsx}"
+
+    - name: rubocop
+      tags:
+        - backend
+      glob: "{*.rb,Gemfile}"
+      run: bundle exec rubocop --force-exclusion {all_files}
