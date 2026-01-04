@@ -73,3 +73,26 @@ deploy:
         
         git checkout -
         curl -X POST "https://app.hatchbox.io/webhooks/deployments/${HATCHBOX_WEBHOOK_TOKEN}?sha=$(git rev-parse production)"
+
+performance:
+  jobs:
+    - name: trigger lighthouse performance test
+      run: | 
+        git fetch origin
+        git checkout performance || git checkout -b performance origin/performance
+        git reset --hard origin/performance
+        git merge main
+        git push -u origin performance
+        
+        # Verify performance and main are now in sync
+        MAIN_SHA=$(git rev-parse main)
+        PERF_SHA=$(git rev-parse performance)
+        if [ "$MAIN_SHA" != "$PERF_SHA" ]; then
+          echo "Error: Performance and main branches are not in sync!"
+          echo "Main SHA: $MAIN_SHA"
+          echo "Performance SHA: $PERF_SHA"
+          git checkout -
+          exit 1
+        fi
+        
+        git checkout -
