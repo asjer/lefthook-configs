@@ -78,18 +78,19 @@ performance:
   jobs:
     - name: trigger lighthouse performance test
       run: | 
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         git fetch origin
         git checkout performance || git checkout -b performance origin/performance
         git reset --hard origin/performance
-        git merge main
+        git merge $CURRENT_BRANCH
         git push -u origin performance
         
         # Verify performance and main are now in sync
-        MAIN_SHA=$(git rev-parse main)
+        MAIN_SHA=$(git rev-parse $CURRENT_BRANCH)
         PERF_SHA=$(git rev-parse performance)
         if [ "$MAIN_SHA" != "$PERF_SHA" ]; then
-          echo "Error: Performance and main branches are not in sync!"
-          echo "Main SHA: $MAIN_SHA"
+          echo "Error: Performance and $CURRENT_BRANCH branches are not in sync!"
+          echo "$CURRENT_BRANCH SHA: $MAIN_SHA"
           echo "Performance SHA: $PERF_SHA"
           git checkout -
           exit 1
