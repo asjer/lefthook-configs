@@ -43,7 +43,7 @@ pre-commit:
       tags:
         - backend
       glob: "{*.rb,Gemfile}"
-      run: bundle exec rubocop --force-exclusion {all_files}
+      run: bin/rubocop --force-exclusion {all_files}
 
     # - name: db consistency
     #   run: bin/database_consistency -c .database_consistency.todo.yml
