@@ -37,7 +37,7 @@ pre-commit:
       tags:
         - frontend
       glob: "{*.html.erb}"
-      run: bin/erb_lint --lint-all --cache
+      run: bin/erb_lint {all_files} --cache
 
     - name: rubocop
       tags:
