@@ -37,13 +37,13 @@ pre-commit:
       tags:
         - frontend
       glob: "{*.html.erb}"
-      run: bin/erb_lint {all_files} --cache
+      run: bin/erb_lint {staged_files} --cache
 
     - name: rubocop
       tags:
         - backend
       glob: "{*.rb,Gemfile}"
-      run: bin/rubocop --force-exclusion {all_files}
+      run: bin/rubocop --force-exclusion {staged_files}
 
     # - name: db consistency
     #   run: bin/database_consistency -c .database_consistency.todo.yml
