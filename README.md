@@ -39,6 +39,27 @@ Custom hook for deployment workflow:
 |-----|-------------|
 | **trigger hatchbox deploy** | Merges main → production and triggers Hatchbox deployment via webhook |
 
+### deploy-commit
+
+Custom hook for deploying a specific commit:
+
+| Job | Description |
+|-----|-------------|
+| **deploy specific commit to hatchbox** | Deploys a specific commit SHA directly to Hatchbox with validation and confirmation |
+
+**Usage:**
+```bash
+lefthook run deploy-commit -- abc123def
+```
+
+This hook will:
+1. Validate the commit SHA exists
+2. Display commit details
+3. Ask for confirmation
+4. Trigger Hatchbox deployment for that specific commit
+
+Useful for hotfixes, rollbacks, or deploying commits from feature branches.
+
 ## Usage
 
 1. Install Lefthook in your project

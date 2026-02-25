@@ -74,6 +74,38 @@ deploy:
         git checkout -
         curl -X POST "https://app.hatchbox.io/webhooks/deployments/${HATCHBOX_WEBHOOK_TOKEN}?sha=$(git rev-parse production)"
 
+deploy-commit:
+  jobs:
+    - name: deploy specific commit to hatchbox
+      run: |
+        set -eu
+
+        COMMIT_SHA="{1}"
+
+        if [ -z "$COMMIT_SHA" ]; then
+          echo "Error: No commit SHA provided"
+          echo "Usage: lefthook run deploy-commit -- <commit-sha>"
+          exit 1
+        fi
+
+        if ! FULL_SHA=$(git rev-parse --verify "${COMMIT_SHA}^{commit}" 2>/dev/null); then
+          echo "Error: Commit '$COMMIT_SHA' does not exist"
+          exit 1
+        fi
+
+        echo "Deploying commit:"
+        git --no-pager log -1 --oneline --decorate "$FULL_SHA"
+
+        HATCHBOX_WEBHOOK_TOKEN=$(bin/rails runner "puts Rails.application.credentials.hatchbox[:webhook_token]")
+        if [ -z "$HATCHBOX_WEBHOOK_TOKEN" ]; then
+          echo "Error: Hatchbox webhook token is missing"
+          exit 1
+        fi
+
+        echo "Triggering deployment..."
+        curl --silent --show-error --fail --max-time 60 -X POST "https://app.hatchbox.io/webhooks/deployments/${HATCHBOX_WEBHOOK_TOKEN}?sha=$FULL_SHA" >/dev/null
+        echo "Deployment triggered successfully!"
+
 performance:
   jobs:
     - name: trigger lighthouse performance test
