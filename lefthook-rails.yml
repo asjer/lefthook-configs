@@ -4,7 +4,7 @@ pre-push:
       tags:
         - frontend
         - security
-      run: NODE_NO_WARNINGS=1 yarn audit
+      run: NODE_NO_WARNINGS=1 yarn audit-ci --moderate
 
     - name: gems audit
       tags:
