@@ -8,6 +8,15 @@ Personal [Lefthook](https://github.com/evilmartians/lefthook) configuration file
 
 A comprehensive configuration for Ruby on Rails projects with frontend assets.
 
+## Git Hook Environment
+
+Git exports repository-local `GIT_*` variables while hooks run. Jobs that may
+shell out to Git in another checkout or cache (for example `bundler-audit
+--update`, or test suites that create temporary repositories) clear those
+variables first with `unset $(git rev-parse --local-env-vars 2>/dev/null)`.
+This prevents nested Git commands from accidentally operating on the hooked
+repository.
+
 ## Hooks
 
 ### pre-commit
