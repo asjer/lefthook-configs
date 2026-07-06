@@ -10,7 +10,7 @@ pre-push:
       tags:
         - backend
         - security
-      run: unset $(git rev-parse --local-env-vars 2>/dev/null); bin/bundler-audit check --update
+      run: unset $(git rev-parse --local-env-vars 2>/dev/null) GIT_QUARANTINE_PATH; bin/bundler-audit check --update
 
     - name: brakeman
       tags:
