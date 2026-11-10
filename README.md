@@ -17,7 +17,18 @@ variables first with `unset $(git rev-parse --local-env-vars 2>/dev/null)`.
 This prevents nested Git commands from accidentally operating on the hooked
 repository.
 
-## Hooks
+### lefthook-rails-ci.yml
+
+For Rails apps whose checks live in `config/ci.rb` (Rails 8.1+ `bin/ci`). `config/ci.rb` is the single list of checks; the hook and GitHub Actions both run `bin/ci`.
+
+| Hook | Job | Description |
+|------|-----|-------------|
+| **pre-commit** | **erblint**, **rubocop** | Same staged-file checks as `lefthook-rails.yml` (in parallel) |
+| **pre-push** | **ci** | Runs `bin/ci` with live output (`follow: true`); fails the push when any step fails |
+
+It has no deploy hooks; use `lefthook-rails.yml` for the Hatchbox `deploy`/`deploy-commit` hooks.
+
+## Hooks (lefthook-rails.yml)
 
 ### pre-commit
 

@@ -1,0 +1,21 @@
+# Rails apps whose checks live in config/ci.rb: pre-push runs bin/ci, the same command GitHub Actions runs.
+pre-push:
+  follow: true
+  jobs:
+    - name: ci
+      run: unset $(git rev-parse --local-env-vars 2>/dev/null) GIT_QUARANTINE_PATH; bin/ci
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: erblint
+      tags:
+        - frontend
+      glob: "{*.html.erb}"
+      run: bin/erb_lint {staged_files} --cache
+
+    - name: rubocop
+      tags:
+        - backend
+      glob: "{*.rb,Gemfile}"
+      run: bin/rubocop --force-exclusion {staged_files}
